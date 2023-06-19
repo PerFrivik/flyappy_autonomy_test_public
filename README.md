@@ -1,3 +1,5 @@
+Awesome :D - Per
+
 # Flyappy Autonomy Test Game
 
 This repository contains the coding test for the Flyability Autonomy team.
