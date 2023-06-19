@@ -12,6 +12,7 @@ class FlyappyRos
 {
   public:
     FlyappyRos(ros::NodeHandle& nh);
+    void threadloop_ros();
 
   private:
     void velocityCallback(const geometry_msgs::Vector3::ConstPtr& msg);
