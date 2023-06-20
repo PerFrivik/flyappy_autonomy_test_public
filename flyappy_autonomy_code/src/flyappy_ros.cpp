@@ -21,7 +21,7 @@ void FlyappyRos::velocityCallback(const geometry_msgs::Vector3::ConstPtr& msg)
     // TODO: Create a method in Flyappy class that returns the wanted acceleration in x and y
 
     acc_cmd.x = 0;
-    acc_cmd.y = 0;
+    acc_cmd.y = flyappy_.get_y_acceleration();
     pub_acc_cmd_.publish(acc_cmd);
 }
 

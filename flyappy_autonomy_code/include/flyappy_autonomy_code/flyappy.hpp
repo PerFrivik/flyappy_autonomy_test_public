@@ -18,6 +18,8 @@ class Flyappy
 
     void find_the_gap();
 
+    double get_y_acceleration();
+
     void controller_y_acceleration();
 
     void controller_x_acceleration();
@@ -30,7 +32,7 @@ class Flyappy
 
     float get_x_value();
 
-    float exponential_decay_filter(std::vector<double> vec);
+    float WeightedMovingAverageFilter(std::vector<double> vec, double value);
 
   private:
 
@@ -53,10 +55,13 @@ class Flyappy
     double fly_down_value_ = 0; 
 
     double y_acceleration_command_ = 0;
+    double weighted_y_acceleration_command_ = 0;
 
     // Filter Information 
 
-    std::vector<double> exponential_decay_filter_list_(10, 0.0);
+    // std::vector<double> MMAF(10, 0.0);
+    // std::vector<double> WeightedMovingAverageFilterData_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    std::vector<double> WeightedMovingAverageFilterData_ = {0.0};
 
     // Starting information
 

@@ -46,6 +46,8 @@ void Flyappy::find_the_gap()
 
 void Flyappy::controller_y_acceleration()
 {
+    fly_down_value_ = 0;
+    fly_up_value_ = 0;
 
     for(unsigned int i = 0; i < control_data_.size(); i++)
     {
@@ -60,16 +62,52 @@ void Flyappy::controller_y_acceleration()
     }
 
     y_acceleration_command_ = fly_up_value_ - fly_down_value_;
-    std::cout << "down_value: " << fly_down_value_ << " up_value: " << fly_up_value_ << std::endl;
+    // if(y_acceleration_command_ >= 0){
+    //     std::cout << "fly up" << std::endl;
+    // } else {
+    //     std::cout << "fly down" << std::endl;
+    // }
+    if(y_acceleration_command_ > 1){
+        y_acceleration_command_ = 1;
+    }
+    if(y_acceleration_command_ < -1){
+        y_acceleration_command_ = -1;
+    }
+
+    weighted_y_acceleration_command_ = WeightedMovingAverageFilter(WeightedMovingAverageFilterData_, y_acceleration_command_);
+    if(weighted_y_acceleration_command_ >= 0){
+        std::cout << "fly up weighted "  << weighted_y_acceleration_command_ << std::endl;
+    } else {
+        std::cout << "fly down weighted " << weighted_y_acceleration_command_ << std::endl;
+    }
+    
+    // std::cout << "down_value: " << fly_down_value_ << " up_value: " << fly_up_value_ << std::endl;
 }
 
 float Flyappy::get_squared_y_value(unsigned int num, float value)
 {
-    return pow(sin(start_angle_ + num*increment_angle_)*value,2);
+    // return pow(sin(start_angle_ + num*increment_angle_)*value,2);
+    return sin(start_angle_ + num*increment_angle_)*value;
+
 }
 
-float Flyappy::exponential_decay_filter(std::vector<double> vec)
+float Flyappy::WeightedMovingAverageFilter(std::vector<double> vec, double value) // source singals & systems summary from HS 2022 & https://www.investopedia.com/ask/answers/071414/whats-difference-between-moving-average-and-weighted-moving-average.asp
 {
-    
+    double weighted_moving_average = 0;
+    double n = vec.size();
+
+    vec.pop_back(); // remove last element of the list 
+    vec.insert(vec.begin(), value);
+
+    for (unsigned int i = 0; i < vec.size(); i++)
+    {
+        weighted_moving_average += (n - i)*vec[i];
+    }
+    return weighted_moving_average/((n*(n+1)/2));
+}
+
+double Flyappy::get_y_acceleration()
+{
+    return weighted_y_acceleration_command_; 
 }
 
