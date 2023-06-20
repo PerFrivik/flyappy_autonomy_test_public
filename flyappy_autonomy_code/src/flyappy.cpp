@@ -61,27 +61,30 @@ void Flyappy::controller_y_acceleration()
         }
     }
 
-    y_acceleration_command_ = fly_up_value_ - fly_down_value_;
-    // if(y_acceleration_command_ >= 0){
-    //     std::cout << "fly up" << std::endl;
-    // } else {
-    //     std::cout << "fly down" << std::endl;
-    // }
-    if(y_acceleration_command_ > 1){
-        y_acceleration_command_ = 1;
-    }
-    if(y_acceleration_command_ < -1){
-        y_acceleration_command_ = -1;
-    }
+    error_ = fly_up_value_ + fly_down_value_;
 
-    weighted_y_acceleration_command_ = WeightedMovingAverageFilter(WeightedMovingAverageFilterData_, y_acceleration_command_);
-    if(weighted_y_acceleration_command_ >= 0){
-        std::cout << "fly up weighted "  << weighted_y_acceleration_command_ << std::endl;
-    } else {
-        std::cout << "fly down weighted " << weighted_y_acceleration_command_ << std::endl;
-    }
+    // std::cout << "error: " << error_ << std::endl;
+
+    integral_ += error_*dt_;
+
+    // std::cout << "integral: " << integral_ << std::endl;
+
+    derivative_ = (error_ - previous_error_) / dt_; 
+
+    // std::cout << "derivative: " << derivative_ << " " << error_ - previous_error_ << " " << dt_ << std::endl;
     
-    // std::cout << "down_value: " << fly_down_value_ << " up_value: " << fly_up_value_ << std::endl;
+
+    weighted_y_acceleration_command_ = kp_ * error_ + ki_ * integral_ + kd_ * derivative_;
+
+    send_command_y_ = WeightedMovingAverageFilter(WeightedMovingAverageFilterData_, weighted_y_acceleration_command_);
+
+    std::cout << weighted_y_acceleration_command_ << std::endl;
+
+    previous_error_ = error_;
+
+    // weighted_y_acceleration_command_ = error_;
+    // weighted_y_acceleration_command_ = WeightedMovingAverageFilter(WeightedMovingAverageFilterData_, error_);
+
 }
 
 float Flyappy::get_squared_y_value(unsigned int num, float value)
@@ -108,6 +111,6 @@ float Flyappy::WeightedMovingAverageFilter(std::vector<double> vec, double value
 
 double Flyappy::get_y_acceleration()
 {
-    return weighted_y_acceleration_command_; 
+    return send_command_y_; 
 }
 

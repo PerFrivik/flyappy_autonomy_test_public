@@ -46,22 +46,26 @@ class Flyappy
 
     // Controller Data
 
-    double dt_ = 1/30;
-    double P_ = 1;
-    double I_ = 1;
-    double D_ = 1;
+    double dt_ = 1.0/30.0;
+    double kp_ = 0.2;
+    double ki_ = 0.0;
+    double kd_ = 0.5;
+    double integral_ = 0;
+    double derivative_ = 0;
 
     double fly_up_value_ = 0;
     double fly_down_value_ = 0; 
 
-    double y_acceleration_command_ = 0;
+    double error_ = 0;
+    double previous_error_ = 0;
     double weighted_y_acceleration_command_ = 0;
+    double send_command_y_ = 0;
 
     // Filter Information 
 
     // std::vector<double> MMAF(10, 0.0);
-    // std::vector<double> WeightedMovingAverageFilterData_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    std::vector<double> WeightedMovingAverageFilterData_ = {0.0};
+    std::vector<double> WeightedMovingAverageFilterData_ = {0.0, 0.0, 0.0};
+    // std::vector<double> WeightedMovingAverageFilterData_ = {0.0};
 
     // Starting information
 
