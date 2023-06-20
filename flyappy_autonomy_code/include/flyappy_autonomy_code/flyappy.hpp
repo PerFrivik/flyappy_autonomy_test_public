@@ -26,22 +26,43 @@ class Flyappy
 
     void threadloop();
 
+    float get_squared_y_value(unsigned int num, float value);
+
+    float get_x_value();
+
+    float exponential_decay_filter(std::vector<double> vec);
+
   private:
+
+    // Test bool
+
+    bool test_ = true;
 
     // Simulation counter
 
     bool started_simulation = false; 
 
-    // Controller PID 
+    // Controller Data
 
     double dt_ = 1/30;
     double P_ = 1;
     double I_ = 1;
     double D_ = 1;
 
+    double fly_up_value_ = 0;
+    double fly_down_value_ = 0; 
+
+    double y_acceleration_command_ = 0;
+
+    // Filter Information 
+
+    std::vector<double> exponential_decay_filter_list_(10, 0.0);
+
     // Starting information
 
     double starting_height_ = 0;
+    double increment_angle_ = 0.19634954631328583;
+    double start_angle_ = -0.7853981852531433;
 
     // Pose of the system 
 
@@ -70,6 +91,8 @@ class Flyappy
     };
 
     LidarData lidar_data_;
+
+    std::vector<float> control_data_; 
 
 
 
