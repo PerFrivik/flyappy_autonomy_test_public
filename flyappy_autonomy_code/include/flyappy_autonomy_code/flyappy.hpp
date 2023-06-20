@@ -5,6 +5,7 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 
 class Flyappy
@@ -18,7 +19,11 @@ class Flyappy
 
     void find_the_gap();
 
+    bool ready_to_zoom();
+
     double get_y_acceleration();
+
+    double get_x_acceleration();
 
     void controller_y_acceleration();
 
@@ -32,6 +37,8 @@ class Flyappy
 
     float get_x_value();
 
+    void track_velocity();
+
     float WeightedMovingAverageFilter(std::vector<double> vec, double value);
 
   private:
@@ -40,6 +47,14 @@ class Flyappy
 
     bool test_ = true;
 
+    // Modes 
+
+    bool zoom_ = false; 
+
+    bool explore_ = true;
+
+    double threashold_ = 0.5;
+
     // Simulation counter
 
     bool started_simulation = false; 
@@ -47,7 +62,7 @@ class Flyappy
     // Controller Data
 
     double dt_ = 1.0/30.0;
-    double kp_ = 0.2;
+    double kp_ = 0.5;
     double ki_ = 0.0;
     double kd_ = 0.5;
     double integral_ = 0;
@@ -60,11 +75,34 @@ class Flyappy
     double previous_error_ = 0;
     double weighted_y_acceleration_command_ = 0;
     double send_command_y_ = 0;
+    double send_command_x_ = 0;
+
+    // Controller for x acceleration 
+
+    double safe_distance = 2.2;
+
+    double v_x_ = 0.0; 
+
+    double requested_v_x_ = 0;
+
+    double kp_v_ = 1;
+    double ki_v_ = 0;
+    double kd_v_ = 0; 
+    double integral_v_ = 0;
+    double derivative_v_ = 0; 
+    double error_v_ = 0; 
+    double previous_error_v_ = 0;
+
+    std::chrono::high_resolution_clock::time_point current_time_; 
+    std::chrono::high_resolution_clock::time_point last_time_;
+    std::chrono::high_resolution_clock::time_point zoom_timer_start_;
+    double zoom_total_time_ = 0.2; 
+
 
     // Filter Information 
 
     // std::vector<double> MMAF(10, 0.0);
-    std::vector<double> WeightedMovingAverageFilterData_ = {0.0, 0.0, 0.0};
+    std::vector<double> WeightedMovingAverageFilterData_ = {0.0, 0.0, 0.0, 0.0, 0.0};
     // std::vector<double> WeightedMovingAverageFilterData_ = {0.0};
 
     // Starting information
@@ -79,7 +117,7 @@ class Flyappy
 
     // Velocity & Acceleration of the system
 
-    double v_x_ = 0;
+    // double v_x_ = 0;
     double v_y_ = 0;
     double a_x_ = 0;
     double a_y_ = 0; 
