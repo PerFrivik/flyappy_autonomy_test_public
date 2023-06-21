@@ -131,15 +131,15 @@ void Flyappy::controller_x_acceleration()
 
     
 
-    if((current_distance_ - last_distance_) < 1 && zoomer_){
+    if((current_distance_ - last_distance_) < 0.7 && zoomer_){
         // requested_v_x_ = 1; 
         // std::cout << "distance left till no more zoom " << current_distance_ - last_distance_ << std::endl;
         // std::cout << "still zooming" << std::endl;
         // std::cout << v_y_ << std::endl;
         std::cout << current_height_<< " <- current height " << track_this_height_ << std::endl;
-        if((current_distance_ - last_distance_) < 1){
-            requested_v_x_ = 2;
-        }
+        // if((current_distance_ - last_distance_) < 1){
+        //     // requested_v_x_ = 2;
+        // }
     } else {
         zoomer_ = false;
     }
@@ -221,6 +221,8 @@ void Flyappy::controller_y_acceleration()
 
         previous_error_ = error_;
 
+        previous_error_u_ = 0;
+
     } else {
         // std::cout << "since im zooming im flying straight" << " " << v_y_ << std::endl;
         error_ = track_this_height_ - current_height_; 
@@ -231,14 +233,16 @@ void Flyappy::controller_y_acceleration()
 
         // std::cout << "integral: " << integral_ << std::endl;
 
-        derivative_ = (error_ - previous_error_) / dt_; 
+        derivative_ = (error_ - previous_error_u_) / dt_; 
 
-        previous_error_ = error_;
+        previous_error_u_ = error_;
 
-        // std::cout << "derivative: " << derivative_ << " " << error_ - previous_error_ << " " << dt_ << std::endl;
+        std::cout << "derivative: " << derivative_ << " " << error_ - previous_error_u_ << " " << dt_ << std::endl;
         
 
         send_command_y_ = kp1_ * error_ + ki1_ * integral_ + kd1_ * derivative_;
+
+        previous_error_ = 0;
 
         std::cout << send_command_y_ << " acceleration " << std::endl;
     }

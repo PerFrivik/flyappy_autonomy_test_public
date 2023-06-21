@@ -70,9 +70,9 @@ class Flyappy
     // Controller Data
 
     double dt_ = 1.0/30.0;
-    double kp_ = 0.5;
+    double kp_ = 0.3;
     double ki_ = 0.0;
-    double kd_ = 0.2;
+    double kd_ = 0.3;
     double integral_ = 0;
     double derivative_ = 0;
 
@@ -81,6 +81,7 @@ class Flyappy
 
     double error_ = 0;
     double previous_error_ = 0;
+    double previous_error_u_ = 0;
     double weighted_y_acceleration_command_ = 0;
     double send_command_y_ = 0;
     double send_command_x_ = 0;
@@ -99,7 +100,7 @@ class Flyappy
 
     double kp1_ = 10.0;
     double ki1_ = 0.0;
-    double kd1_ = 0.3;
+    double kd1_ = 5.0;
 
     double kp_v_ = 2;
     double ki_v_ = 0;
