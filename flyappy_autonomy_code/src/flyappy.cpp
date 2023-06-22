@@ -34,18 +34,106 @@ void Flyappy::threadloop()
 {   
     track_velocity();
     if(!lidar_data_.ranges.empty() && test_) ///< Makes sure the controller does not start running before there is any lidar data -> would crash the code
-    {
+    {   
+        control_data_ = lidar_data_.ranges; 
+        control_data_intens_ = lidar_data_.intensities; 
         test_ = true; 
-
+        if((get_x_value(4, control_data_[4] <= 1.5) || (get_x_value(3, control_data_[3] <= 1.5) || (get_x_value(5, control_data_[5] <= 1.5)))))
+        {
+            start_slam_ = true;
+        }
+        if(start_slam_)
+        {
+            baby_slam();
+        }
         find_the_gap();
+        
         
     } 
 }
 
+void Flyappy::baby_slam_interpolation()
+{
+    int _rounded_height = (int) map_height_;
+    std::cout << _rounded_height << std::endl;
+
+    map_1D_ = std::vector<int>(map_accuracy_, 3); 
+}
+
+void Flyappy::baby_slam_distance_to_wall()
+{
+    double _total_x_distance = 0;
+    double _counter = 0;
+    for(unsigned int i = 0; i < control_data_.size(); i++)
+    {
+        if(get_x_value(i, control_data_[i]) <= 1.5)
+        {
+            _total_x_distance += get_x_value(i, control_data_[i]);
+            _counter += 1; 
+        }
+    }
+    distance_to_wall_ = _total_x_distance/_counter;
+    std::cout << "distance to the wall: " << distance_to_wall_ << std::endl; 
+}
+
+void Flyappy::baby_slam_update_map()
+{
+    for(unsigned int i = 0; i < control_data_.size(); i++)
+    {   
+        // if(control_data_intens_[i]){
+        double _point_location = current_height_ + get_y_value_at_wall(i, control_data_[i]);
+        int _map_location = (int) (_point_location * 100);
+        if(_map_location < 0){
+            _map_location = 0;
+        } else if (_map_location > 403){
+            _map_location = 403;
+        }
+
+        if(abs(get_x_value(i, control_data_[i]) - distance_to_wall_) < 0.5){
+            if (map_1D_[_map_location] != 0){
+                map_1D_[_map_location] = 1; 
+            }
+            if(i == 3)
+                std::cout << "rock" << std::endl;
+        } else {
+            std::cout << "do i even go in here" << std::endl;
+            map_1D_[_map_location] = 0;
+            if(i == 3)
+                std::cout << "air" << std::endl;
+        }
+
+        if(i == 3){
+            std::cout << get_x_value(i, control_data_[i]) << " x - distance " << std::endl;
+            std::cout << current_height_ << " " << get_y_value_at_wall(i, control_data_[i]) << std::endl;
+            std::cout << "i: " << i << " point location: " << _point_location << "map location: " << _map_location << std::endl;
+        }
+        //     std::cout << current_height_ << " " << get_y_value(i, control_data_[i]) << std::endl;
+        //     std::cout << "i: " << i << " point location: " << _point_location << "map location: " << _map_location << std::endl;
+        // }
+    }
+    for (int valuee : map_1D_) {
+        std::cout << valuee << ' ';
+    }
+    std::cout << '\n';
+    std::cout << " " << std::endl;
+}
+
 void Flyappy::baby_slam()
 {
-    if(control_data_[0] && )
+    if((control_data_[0] < 3) && (control_data_[8] < 3) && get_height_){
+        map_height_ = get_abs_y_value(0, control_data_[0]) + get_abs_y_value(8, control_data_[8]);
+        baby_slam_interpolation();
+        std::cout << map_height_ << std::endl;
+        get_height_ = false; 
+    } 
+
+    if(map_height_ != 0)
+        baby_slam_distance_to_wall();
+        baby_slam_update_map(); 
 }
+
+
+
 
 void Flyappy::track_velocity()
 {
@@ -84,7 +172,7 @@ void Flyappy::track_velocity()
 void Flyappy::find_the_gap()
 {
 
-    control_data_ = lidar_data_.ranges; 
+    // control_data_ = lidar_data_.ranges; 
 
     if(!got_start_height_)
     {
@@ -107,6 +195,7 @@ bool Flyappy::ready_to_zoom()
     {
         track_this_height_ = current_height_;
         last_distance_ = current_distance_; 
+        map_1D_ = std::vector<int>(map_accuracy_, 3); //reset slam for next place
         return true;
     } else {
         return false;
@@ -220,7 +309,7 @@ void Flyappy::controller_y_acceleration()
 
         send_command_y_ = WeightedMovingAverageFilter(WeightedMovingAverageFilterData_, weighted_y_acceleration_command_);
 
-        std::cout << weighted_y_acceleration_command_ << std::endl;
+        // std::cout << weighted_y_acceleration_command_ << std::endl;
 
         // std::cout << "not zooming" << std::endl;
 
@@ -255,9 +344,25 @@ void Flyappy::controller_y_acceleration()
 
 }
 
+float Flyappy::get_y_value_at_wall(unsigned int num, float value)
+{   
+    double factor = distance_to_wall_/get_x_value(num, value); // factor to get correct y value for the "gap" as if i just take the normal y value its worong too far up or down
+    return sin(start_angle_ + num*increment_angle_)*value*factor;
+}
+
 float Flyappy::get_abs_y_value(unsigned int num, float value)
 {
     return abs(sin(start_angle_ + num*increment_angle_)*value);
+}
+
+float Flyappy::get_y_value(unsigned int num, float value)
+{
+    return sin(start_angle_ + num*increment_angle_)*value;
+} 
+
+float Flyappy::get_x_value(unsigned int num, float value)
+{
+    return cos(start_angle_ + num*increment_angle_)*value;
 }
 
 float Flyappy::get_squared_y_value(unsigned int num, float value)

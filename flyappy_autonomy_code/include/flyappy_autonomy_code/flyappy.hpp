@@ -21,6 +21,12 @@ class Flyappy
 
     void baby_slam(); 
 
+    void baby_slam_interpolation(); 
+
+    void baby_slam_update_map();
+
+    void baby_slam_distance_to_wall(); 
+
     void find_the_gap();
 
     bool ready_to_zoom();
@@ -39,11 +45,15 @@ class Flyappy
 
     float get_abs_y_value(unsigned int num, float value);
 
+    float get_y_value(unsigned int num, float value);
+
+    float get_y_value_at_wall(unsigned int num, float value);
+
     float get_squared_y_value(unsigned int num, float value);
 
     float get_weighted_squared_y_value(unsigned int num, float value1, float value2, float value3);
 
-    float get_x_value();
+    float get_x_value(unsigned int num, float value);
 
     void track_velocity();
 
@@ -57,6 +67,16 @@ class Flyappy
     // Baby SLAM
 
     double map_height_ = 0; 
+
+    bool get_height_ = true; 
+
+    double map_accuracy_ = 403; 
+
+    std::vector<int> map_1D_; 
+
+    bool start_slam_ = false;
+
+    double distance_to_wall_ = 0; 
 
     // Test bool
 
@@ -180,6 +200,7 @@ class Flyappy
     v vel_;
 
     std::vector<float> control_data_; 
+    std::vector<float> control_data_intens_; 
 
 
 

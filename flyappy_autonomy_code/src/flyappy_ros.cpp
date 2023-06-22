@@ -23,11 +23,11 @@ void FlyappyRos::velocityCallback(const geometry_msgs::Vector3::ConstPtr& msg)
 
     flyappy_.set_vx_data(msg->x, msg->y);
 
-    acc_cmd.x = flyappy_.get_x_acceleration();
-    acc_cmd.y = flyappy_.get_y_acceleration();
+    // acc_cmd.x = flyappy_.get_x_acceleration();
+    // acc_cmd.y = flyappy_.get_y_acceleration();
 
-    // acc_cmd.x = 0;
-    // acc_cmd.y = 0;
+    acc_cmd.x = 0;
+    acc_cmd.y = 0;
 
     pub_acc_cmd_.publish(acc_cmd);
 }
