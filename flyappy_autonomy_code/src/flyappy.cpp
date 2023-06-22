@@ -111,7 +111,7 @@ bool Flyappy::ready_to_zoom()
 void Flyappy::controller_x_acceleration()
 {   
 
-    requested_v_x_ = (control_data_[3] + control_data_[4] + control_data_[5])/10;
+    requested_v_x_ = (control_data_[3] + control_data_[4] + control_data_[5])/8;
 
     zoom_ = ready_to_zoom();
 
@@ -131,7 +131,7 @@ void Flyappy::controller_x_acceleration()
 
     
 
-    if((current_distance_ - last_distance_) < 0.7 && zoomer_){
+    if((current_distance_ - last_distance_) < 0.8 && zoomer_){
         // requested_v_x_ = 1; 
         // std::cout << "distance left till no more zoom " << current_distance_ - last_distance_ << std::endl;
         // std::cout << "still zooming" << std::endl;
