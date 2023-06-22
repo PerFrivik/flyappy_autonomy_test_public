@@ -42,6 +42,11 @@ void Flyappy::threadloop()
     } 
 }
 
+void Flyappy::baby_slam()
+{
+    if(control_data_[0] && )
+}
+
 void Flyappy::track_velocity()
 {
     current_time_ = std::chrono::high_resolution_clock::now();

@@ -19,6 +19,8 @@ class Flyappy
 
     void set_vx_data(float vel_x, float vel_y);
 
+    void baby_slam(); 
+
     void find_the_gap();
 
     bool ready_to_zoom();
@@ -50,6 +52,11 @@ class Flyappy
     float WeightedMovingAverageFilter(std::vector<double> vec, double value);
 
   private:
+
+
+    // Baby SLAM
+
+    double map_height_ = 0; 
 
     // Test bool
 
