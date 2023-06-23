@@ -31,7 +31,7 @@ class Flyappy
 
     // ------------------------------------------------------ State Estimation --------------------------------------------//
 
-    void calibration(); 
+    void dt_calibration(); 
     void state_estimation();
     void update_dt(); 
 
@@ -40,10 +40,13 @@ class Flyappy
     void baby_slam(); 
 
     bool baby_slam_run(); 
-    void baby_slam_reset(); 
+    bool baby_slam_reset(); 
+    void baby_slam_initialize_map();
     void baby_slam_update_map();
 
     void baby_slam_longest_sequence(); 
+
+    void baby_slam_maintain_state(); 
 
     // ------------------------------------------------------ Controller --------------------------------------------//
 
@@ -83,6 +86,7 @@ class Flyappy
     };
 
     s state_;
+
     struct v
     {
       float x;
@@ -124,12 +128,25 @@ class Flyappy
 
     bool run_slam_ = false; 
 
-    bool reset_slam_ = false; 
+    bool game_started_ = false;
+
+    bool received_steady_state_goal_position_ = false; 
+
+    double steady_state_goal_position_x_ = 0; 
+    double steady_state_goal_position_y_ = 0; 
 
     double upper_limit_ = 0; 
     double lower_limit_ = 0; 
 
+    bool initialized_map_ = false; 
+
     std::vector<int> map_;
+
+    int map_accuracy_ = 403; 
+
+    int gap_size_ = 0; 
+
+    int min_gap_size_ = 14; 
 
     // Controller ------------------------------------------------------------------------
 
@@ -140,25 +157,31 @@ class Flyappy
 
     double steady_state_y_ = 0; 
 
-    double kp_y_ = 1; 
-    double ki_y_ = 1; 
-    double kd_y_ = 1; 
+    double kp_y_ = 3.8; 
+    double ki_y_ = 0.0; 
+    double kd_y_ = 3.0; 
 
     double error_y_ = 0; 
     double last_error_y_ = 0; 
     double integral_y_ = 0; 
+    double derivative_y_ = 0; 
+
+    double requested_y_position_ = 2; 
 
     //< X - Controller
 
     double steady_state_x_ = 0; 
 
-    double kp_x_ = 1; 
-    double ki_x_ = 1; 
-    double kd_x_ = 1; 
+    double kp_x_ = 5.0; 
+    double ki_x_ = 0.0; 
+    double kd_x_ = 2.0; 
 
     double error_x_ = 0; 
     double last_error_x_ = 0; 
     double integral_x_ = 0; 
+    double derivative_x_ = 0; 
+
+    double requested_x_velocity_ = 0; 
 
 
 
