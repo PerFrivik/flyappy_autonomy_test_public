@@ -21,7 +21,7 @@ void FlyappyRos::velocityCallback(const geometry_msgs::Vector3::ConstPtr& msg)
     // TODO: Create a method in Flyappy class that returns the wanted acceleration in x and y
 
 
-    flyappy_.set_vx_data(msg->x, msg->y);
+    flyappy_.get_vx_data(msg->x, msg->y);
 
     acc_cmd.x = flyappy_.get_x_acceleration();
     acc_cmd.y = flyappy_.get_y_acceleration();
@@ -41,7 +41,7 @@ void FlyappyRos::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
     // TODO Properly send Lidar data
 
-    flyappy_.set_lidar_data(msg->angle_min, msg->angle_max, msg->angle_increment, msg->time_increment,
+    flyappy_.get_lidar_data(msg->angle_min, msg->angle_max, msg->angle_increment, msg->time_increment,
                           msg->scan_time, msg->range_min, msg->range_max,
                           msg->ranges, msg->intensities);
 

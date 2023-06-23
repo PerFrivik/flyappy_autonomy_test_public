@@ -13,183 +13,47 @@ class Flyappy
   public:
     Flyappy();
 
-    void set_lidar_data(float angle_min, float angle_max, float angle_increment, float time_increment,
+    // ------------------------------------------------------ Get Data --------------------------------------------//
+
+    void get_lidar_data(float angle_min, float angle_max, float angle_increment, float time_increment,
                       float scan_time, float range_min, float range_max,
                       const std::vector<float>& ranges, const std::vector<float>& intensities);
-
-    void set_vx_data(float vel_x, float vel_y);
-
-    void baby_slam(); 
-
-    void baby_slam_interpolation(); 
-
-    void baby_slam_update_map();
-
-    void baby_slam_distance_to_wall(); 
-
-    void find_the_gap();
-
-    bool ready_to_zoom();
-
-    double get_y_acceleration();
-
-    double get_x_acceleration();
-
-    void controller_y_acceleration();
-
-    void controller_y_acceleration_slam(); 
-
-    void controller_x_acceleration();
-
-    void pass_rock(); 
-
-    void threadloop();
-
-    float get_abs_y_value(unsigned int num, float value);
-
-    float get_y_value(unsigned int num, float value);
-
+    void get_vx_data(float vel_x, float vel_y);
+    void initialize_lidar(); 
+    float get_x_value(unsigned int num, float value);
+    float get_y_value(unsigned int num, float value, bool abs_value);
     float get_y_value_at_wall(unsigned int num, float value);
 
-    float get_squared_y_value(unsigned int num, float value);
+    // ------------------------------------------------------ Set Data --------------------------------------------//
 
-    float get_weighted_squared_y_value(unsigned int num, float value1, float value2, float value3);
+    double set_y_acceleration();
+    double set_x_acceleration();
 
-    float get_x_value(unsigned int num, float value);
+    // ------------------------------------------------------ State Estimation --------------------------------------------//
 
-    void track_velocity();
+    void calibration(); 
+    void state_estimation();
+    void update_dt(); 
 
-    void track_height(); 
+    // ------------------------------------------------------ Baby SLAM  --------------------------------------------//
 
-    void longest_sequence(); 
+    bool run_baby_slam(); 
+    void reset_baby_slam(); 
+    void baby_slam(); 
 
-    float WeightedMovingAverageFilter(std::vector<double> vec, double value);
+    // ------------------------------------------------------ Controller --------------------------------------------//
 
-    void slam_reset(); 
+    void threadloop(); 
+    void x_pid();
+    void y_pid(); 
+
+
+
+
 
   private:
 
-
-    // Baby SLAM
-
-    double map_height_ = 0; 
-
-    bool get_height_ = true; 
-
-    double map_accuracy_ = 403; 
-
-    std::vector<int> map_1D_; 
-
-    bool start_slam_ = false;
-
-    double distance_to_wall_ = 0; 
-
-    int start_bottom_ = 0; 
-    int end_top_ = 0; 
-
-    double requested_y_pos_ = 0; 
-
-    bool resetting_ = false; 
-    bool decided_reset_value_ = false; 
-
-    // Test bool
-
-    bool test_ = true;
-
-    // Modes 
-
-    bool zoom_ = false; 
-
-    bool explore_ = true;
-
-    double threashold_ = 0.4;
-
-    // Simulation counter
-
-    bool started_simulation = false; 
-
-    // Controller Data
-
-    double dt_ = 1.0/30.0;
-    double kp_ = 3.0;
-    double ki_ = 0.0;
-    double kd_ = 3.0;
-    double integral_ = 0;
-    double derivative_ = 0;
-
-    double fly_up_value_ = 0;
-    double fly_down_value_ = 0; 
-
-    double error_ = 0;
-    double previous_error_ = 0;
-    double previous_error_u_ = 0;
-    double weighted_y_acceleration_command_ = 0;
-    double send_command_y_ = 0;
-    double send_command_x_ = 0;
-
-    // Controller for x acceleration 
-
-    double safe_distance = 2.0;
-
-    double v_x_ = 0.0; 
-
-    double requested_v_x_ = 0;
-
-    double requested_v_y_ = 0; 
-
-    bool zoomer_ = false; 
-
-    double kp1_ = 10.0;
-    double ki1_ = 0.0;
-    double kd1_ = 5.0;
-
-    double kp_v_ = 5;
-    double ki_v_ = 0;
-    double kd_v_ = 2; 
-    double integral_v_ = 0;
-    double derivative_v_ = 0; 
-    double error_v_ = 0; 
-    double previous_error_v_ = 0;
-
-    std::chrono::high_resolution_clock::time_point current_time_; 
-    std::chrono::high_resolution_clock::time_point last_time_;
-    std::chrono::high_resolution_clock::time_point zoom_timer_start_;
-    double zoom_total_time_ = 0.4; 
-
-
-    // Filter Information 
-
-    // std::vector<double> MMAF(10, 0.0);
-    // std::vector<double> WeightedMovingAverageFilterData_ = {0.0, 0.0, 0.0, 0.0, 0.0};
-    std::vector<double> WeightedMovingAverageFilterData_ = {0.0};
-
-    // Starting information
-
-    double starting_height_ = 0;
-    double increment_angle_ = 0.19634954631328583;
-    double start_angle_ = -0.7853981852531433;
-
-    // Pose of the system 
-
-    double current_height_ = 0; 
-
-    double current_distance_ = 0; 
-
-    double last_distance_ = 0; 
-
-    double track_this_height_ = 0; 
-
-    bool got_start_height_ = false;
-
-    // Velocity & Acceleration of the system
-
-    // double v_x_ = 0;
-    double v_y_ = 0;
-    double a_x_ = 0;
-    double a_y_ = 0; 
-
-    // Lidar Information 
-
+    // Data
     struct LidarData
     {
         float angle_min;
@@ -205,16 +69,71 @@ class Flyappy
 
     LidarData lidar_data_;
 
+    std::vector<float> lidar_ranges_; 
+    std::vector<float> lidar_intensities_; 
+
+    struct s
+    {
+      float x;
+      float y;
+    };
+
+    s state_;
     struct v
     {
       float x;
       float y;
     };
 
-    v vel_;
+    v velocity_;
 
-    std::vector<float> control_data_; 
-    std::vector<float> control_data_intens_; 
+    struct a
+    {
+      float x;
+      float y;
+    };
+
+    a acceleration_;
+
+    // Initialization ---------------------------------------------------------------------
+
+
+
+    // State Estimation --------------------------------------------------------------------
+
+    double dt_ = 0; 
+
+    bool calibrated_time_ = false; 
+
+    bool calibrated_state_ = false; 
+
+    std::chrono::high_resolution_clock::time_point current_time_; 
+    std::chrono::high_resolution_clock::time_point previous_time_;
+
+    double distance_to_wall_ = 0; 
+
+    double start_angle_ = -0.7853981852531433;
+
+    double increment_angle_ = 0.19634954631328583;
+
+    // SLAM -----------------------------------------------------------------------------------
+
+    bool run_slam_ = false; 
+
+    bool reset_slam_ = false; 
+
+    // Controller ------------------------------------------------------------------------
+
+    //< Y - Controller 
+
+    bool steady_state_ = false; 
+
+    //< X - Controller
+
+
+
+
+
 
 
 
