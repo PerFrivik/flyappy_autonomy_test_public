@@ -37,9 +37,13 @@ class Flyappy
 
     // ------------------------------------------------------ Baby SLAM  --------------------------------------------//
 
-    bool run_baby_slam(); 
-    void reset_baby_slam(); 
     void baby_slam(); 
+
+    bool baby_slam_run(); 
+    void baby_slam_reset(); 
+    void baby_slam_update_map();
+
+    void baby_slam_longest_sequence(); 
 
     // ------------------------------------------------------ Controller --------------------------------------------//
 
@@ -122,13 +126,39 @@ class Flyappy
 
     bool reset_slam_ = false; 
 
+    double upper_limit_ = 0; 
+    double lower_limit_ = 0; 
+
+    std::vector<int> map_;
+
     // Controller ------------------------------------------------------------------------
+
+    bool steady_state_ = false; 
+    double steady_state_threshold_ = 0.2; 
 
     //< Y - Controller 
 
-    bool steady_state_ = false; 
+    double steady_state_y_ = 0; 
+
+    double kp_y_ = 1; 
+    double ki_y_ = 1; 
+    double kd_y_ = 1; 
+
+    double error_y_ = 0; 
+    double last_error_y_ = 0; 
+    double integral_y_ = 0; 
 
     //< X - Controller
+
+    double steady_state_x_ = 0; 
+
+    double kp_x_ = 1; 
+    double ki_x_ = 1; 
+    double kd_x_ = 1; 
+
+    double error_x_ = 0; 
+    double last_error_x_ = 0; 
+    double integral_x_ = 0; 
 
 
 

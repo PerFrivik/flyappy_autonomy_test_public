@@ -122,7 +122,7 @@ void Flyappy::update_dt()
 
 // ------------------------------------------------------ Baby SLAM --------------------------------------------//
 
-bool Flyappy::run_baby_slam()
+bool Flyappy::baby_slam_run()
 {
     if(distance_to_wall_ == -1){
         return false;
@@ -133,9 +133,45 @@ bool Flyappy::run_baby_slam()
     }
 }
 
-void baby_slam()
+void Flyappy::baby_slam()
 {
     
+}
+
+void Flyappy::baby_slam_longest_sequence()
+{   
+    double _sequence = 0; 
+    double _longest_sequence = 0; 
+
+    for(unsigned int i = 0; i < map_.size(); i++)
+    {
+        if(map_[i] == 0)
+        {
+            _sequence +=1;      
+        }
+        else if ((map_[i] == 1 || map_[i] == 3) && i > 0 && i < map_.size() - 1 && map_[i-1] == 0 && map_[i+1] == 0)
+        {
+            // Include a 1 or 3 if they are sandwiched between 0s
+            _sequence += 1;
+        }
+        else 
+        {
+            if (_sequence > _longest_sequence) {
+                _longest_sequence = _sequence; 
+                upper_limit_ = i -1; 
+                lower_limit_ = i - _sequence; 
+            }
+            _sequence = 0; // Sequence ended, so reset
+        }
+    }
+    
+    // Check for the longest sequence one last time after the loop ends
+    if (_sequence > _longest_sequence) {
+        _longest_sequence = _sequence; 
+        upper_limit_ = map_.size() - 1; 
+        lower_limit_ = map_.size() - _sequence;
+    }
+
 }
 
 // ------------------------------------------------------ Controller --------------------------------------------//
@@ -164,7 +200,7 @@ void Flyappy::threadloop()
         }
 
         // SLAM part
-        if(run_baby_slam()){
+        if(baby_slam_run()){
             baby_slam(); 
         }
             
