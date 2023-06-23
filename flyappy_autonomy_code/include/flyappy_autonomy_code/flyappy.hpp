@@ -37,6 +37,8 @@ class Flyappy
 
     void controller_y_acceleration();
 
+    void controller_y_acceleration_slam(); 
+
     void controller_x_acceleration();
 
     void pass_rock(); 
@@ -59,7 +61,11 @@ class Flyappy
 
     void track_height(); 
 
+    void longest_sequence(); 
+
     float WeightedMovingAverageFilter(std::vector<double> vec, double value);
+
+    void slam_reset(); 
 
   private:
 
@@ -77,6 +83,14 @@ class Flyappy
     bool start_slam_ = false;
 
     double distance_to_wall_ = 0; 
+
+    int start_bottom_ = 0; 
+    int end_top_ = 0; 
+
+    double requested_y_pos_ = 0; 
+
+    bool resetting_ = false; 
+    bool decided_reset_value_ = false; 
 
     // Test bool
 
@@ -97,9 +111,9 @@ class Flyappy
     // Controller Data
 
     double dt_ = 1.0/30.0;
-    double kp_ = 0.3;
+    double kp_ = 3.0;
     double ki_ = 0.0;
-    double kd_ = 0.3;
+    double kd_ = 3.0;
     double integral_ = 0;
     double derivative_ = 0;
 
@@ -129,9 +143,9 @@ class Flyappy
     double ki1_ = 0.0;
     double kd1_ = 5.0;
 
-    double kp_v_ = 2;
+    double kp_v_ = 5;
     double ki_v_ = 0;
-    double kd_v_ = 0; 
+    double kd_v_ = 2; 
     double integral_v_ = 0;
     double derivative_v_ = 0; 
     double error_v_ = 0; 

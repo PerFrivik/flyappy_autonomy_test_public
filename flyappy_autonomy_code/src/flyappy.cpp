@@ -73,7 +73,19 @@ void Flyappy::baby_slam_distance_to_wall()
         }
     }
     distance_to_wall_ = _total_x_distance/_counter;
-    std::cout << "distance to the wall: " << distance_to_wall_ << std::endl; 
+    // std::cout << "distance to the wall: " << distance_to_wall_ << std::endl; 
+}
+
+void Flyappy::slam_reset()
+{   
+    // std::cout << "dist to wall: " << distance_to_wall_ << std::endl;
+    if(distance_to_wall_ < 0.3 && (abs(current_height_ - requested_y_pos_) < 0.1)){
+        // std::cout << "IM RESETTING" << std::endl;
+        // std::cout << "IM RESETTING" << std::endl;
+        // std::cout << "IM RESETTING" << std::endl;
+        map_1D_ = std::vector<int>(map_accuracy_, 3); //reset slam for next place
+        // _longest_sequence = 0;
+    }
 }
 
 void Flyappy::baby_slam_update_map()
@@ -93,29 +105,30 @@ void Flyappy::baby_slam_update_map()
             if (map_1D_[_map_location] != 0){
                 map_1D_[_map_location] = 1; 
             }
-            if(i == 3)
-                std::cout << "rock" << std::endl;
+            // if(i == 3)
+            //     std::cout << "rock" << std::endl;
         } else {
-            std::cout << "do i even go in here" << std::endl;
+            // std::cout << "do i even go in here" << std::endl;
             map_1D_[_map_location] = 0;
-            if(i == 3)
-                std::cout << "air" << std::endl;
+            // std::cout << "i got maybe" << std::endl;
+            // if(i == 3)
+            //     std::cout << "air" << std::endl;
         }
-
-        if(i == 3){
-            std::cout << get_x_value(i, control_data_[i]) << " x - distance " << std::endl;
-            std::cout << current_height_ << " " << get_y_value_at_wall(i, control_data_[i]) << std::endl;
-            std::cout << "i: " << i << " point location: " << _point_location << "map location: " << _map_location << std::endl;
-        }
+        // std::cout << "i got here" << std::endl;
+        // if(i == 3){
+        //     std::cout << get_x_value(i, control_data_[i]) << " x - distance " << std::endl;
+        //     std::cout << current_height_ << " " << get_y_value_at_wall(i, control_data_[i]) << std::endl;
+        //     std::cout << "i: " << i << " point location: " << _point_location << "map location: " << _map_location << std::endl;
+        // }
         //     std::cout << current_height_ << " " << get_y_value(i, control_data_[i]) << std::endl;
         //     std::cout << "i: " << i << " point location: " << _point_location << "map location: " << _map_location << std::endl;
         // }
     }
-    for (int valuee : map_1D_) {
-        std::cout << valuee << ' ';
-    }
-    std::cout << '\n';
-    std::cout << " " << std::endl;
+    // for (int valuee : map_1D_) {
+    //     std::cout << valuee << ' ';
+    // }
+    // std::cout << '\n';
+    // std::cout << " " << std::endl;
 }
 
 void Flyappy::baby_slam()
@@ -123,13 +136,15 @@ void Flyappy::baby_slam()
     if((control_data_[0] < 3) && (control_data_[8] < 3) && get_height_){
         map_height_ = get_abs_y_value(0, control_data_[0]) + get_abs_y_value(8, control_data_[8]);
         baby_slam_interpolation();
-        std::cout << map_height_ << std::endl;
+        // std::cout << map_height_ << " test" << std::endl;
         get_height_ = false; 
     } 
 
-    if(map_height_ != 0)
+    if(map_height_ != 0){
         baby_slam_distance_to_wall();
         baby_slam_update_map(); 
+        slam_reset();
+    }
 }
 
 
@@ -162,11 +177,6 @@ void Flyappy::track_velocity()
     // std::cout << "v_x_: " << v_x_ << " accel: " << send_command_x_ << " dt: " << dt << std::endl;
 }
 
-// void Flyappy::track_height()
-// {
-//     current_height_ += v_y_ * 
-// }
-
 
 
 void Flyappy::find_the_gap()
@@ -182,7 +192,8 @@ void Flyappy::find_the_gap()
     }
 
     controller_x_acceleration();
-    controller_y_acceleration();
+    controller_y_acceleration_slam(); 
+    // controller_y_acceleration();
  
 }
 
@@ -195,7 +206,7 @@ bool Flyappy::ready_to_zoom()
     {
         track_this_height_ = current_height_;
         last_distance_ = current_distance_; 
-        map_1D_ = std::vector<int>(map_accuracy_, 3); //reset slam for next place
+        // map_1D_ = std::vector<int>(map_accuracy_, 3); //reset slam for next place
         return true;
     } else {
         return false;
@@ -205,16 +216,17 @@ bool Flyappy::ready_to_zoom()
 void Flyappy::controller_x_acceleration()
 {   
 
-    requested_v_x_ = (control_data_[3] + control_data_[4] + control_data_[5])/8;
+    requested_v_x_ = (control_data_[3] + control_data_[4] + control_data_[5])/15;
 
     zoom_ = ready_to_zoom();
 
     if(zoom_)
     {
-        std::cout << "i entered zoom mode" << std::endl;
+        // std::cout << "i entered zoom mode" << std::endl;
         // requested_v_x_ = 1; 
         zoom_ = false;
         zoomer_ = true;
+        resetting_ = true; 
         zoom_timer_start_ = current_time_;
         // std::cout << v_y_ << std::endl;
     }
@@ -225,17 +237,21 @@ void Flyappy::controller_x_acceleration()
 
     
 
-    if((current_distance_ - last_distance_) < 0.8 && zoomer_){
+    if((current_distance_ - last_distance_) < 0.8 && resetting_){
         // requested_v_x_ = 1; 
         // std::cout << "distance left till no more zoom " << current_distance_ - last_distance_ << std::endl;
         // std::cout << "still zooming" << std::endl;
         // std::cout << v_y_ << std::endl;
-        std::cout << current_height_<< " <- current height " << track_this_height_ << std::endl;
+        // std::cout << current_height_<< " <- current height " << track_this_height_ << std::endl;
         // if((current_distance_ - last_distance_) < 1){
         //     // requested_v_x_ = 2;
         // }
-    } else {
+        // std::cout << "i should be flying stright: " << current_distance_ - last_distance_ << std::endl;
+    } else if (resetting_){
+        std::cout << "end of reset im resetting all values!!! " << std::endl;
         zoomer_ = false;
+        resetting_ = false; 
+        decided_reset_value_ = false;
     }
 
     error_v_ = requested_v_x_ - vel_.x;
@@ -260,89 +276,118 @@ void Flyappy::controller_x_acceleration()
     previous_error_v_ = error_v_; 
 }
 
-void Flyappy::controller_y_acceleration()
-{
-    fly_down_value_ = 0;
-    fly_up_value_ = 0;
+void Flyappy::longest_sequence()
+{   
+    double _sequence = 0; 
+    double _longest_sequence = 0; 
+    // double start_bottom_ = 0; 
+    // double end_top_ = 0;
 
-
-    if(explore_){
-        for(unsigned int i = 0; i < control_data_.size(); i++)
+    for(unsigned int i = 0; i < map_1D_.size(); i++)
+    {
+        if(map_1D_[i] == 0)
         {
-            if(i < 4)
-            {
-                // fly_down_value_ += get_squared_y_value(i, control_data_[i]);
-                if(i == 0){
-                    fly_down_value_ += get_weighted_squared_y_value(i, control_data_[i], control_data_[i+1], control_data_[i+2]);
-                } else {
-                    fly_down_value_ += get_weighted_squared_y_value(i, control_data_[i-1], control_data_[i], control_data_[i+1]);
-                }
+            _sequence +=1;      
+        }
+        else if ((map_1D_[i] == 1 || map_1D_[i] == 3) && i > 0 && i < map_1D_.size() - 1 && map_1D_[i-1] == 0 && map_1D_[i+1] == 0)
+        {
+            // Include a 1 or 3 if they are sandwiched between 0s
+            _sequence += 1;
+        }
+        else 
+        {
+            if (_sequence > _longest_sequence) {
+                _longest_sequence = _sequence; 
+                end_top_ = i -1; 
+                start_bottom_ = i - _sequence; 
             }
-            if(i > 4)
-            {
-                // fly_up_value_ += get_squared_y_value(i, control_data_[i]);
-                if(i == 8){
-                    fly_up_value_ += get_weighted_squared_y_value(i, control_data_[i], control_data_[i-1], control_data_[i-2]);
-                } else {
-                    fly_up_value_ += get_weighted_squared_y_value(i, control_data_[i-1], control_data_[i], control_data_[i+1]);
-                }
-            }
+            _sequence = 0; // Sequence ended, so reset
         }
     }
-
-    if(!zoomer_)
-    {
-        requested_v_y_ = fly_up_value_ - fly_down_value_;
-        error_ = requested_v_y_ - vel_.y;
-        // std::cout << requested_v_y_ << std::endl;
-            
-        integral_ += error_*dt_;
-
-        // std::cout << "integral: " << integral_ << std::endl;
-
-        derivative_ = (error_ - previous_error_) / dt_; 
-
-        // std::cout << "derivative: " << derivative_ << " " << error_ - previous_error_ << " " << dt_ << std::endl;
-        
-
-        weighted_y_acceleration_command_ = kp_ * error_ + ki_ * integral_ + kd_ * derivative_;
-
-        send_command_y_ = WeightedMovingAverageFilter(WeightedMovingAverageFilterData_, weighted_y_acceleration_command_);
-
-        // std::cout << weighted_y_acceleration_command_ << std::endl;
-
-        // std::cout << "not zooming" << std::endl;
-
-        previous_error_ = error_;
-
-        previous_error_u_ = 0;
-
-    } else {
-        // std::cout << "since im zooming im flying straight" << " " << v_y_ << std::endl;
-        error_ = track_this_height_ - current_height_; 
-        std::cout << "current height: " << current_height_ << " wanted height " << track_this_height_ << std::endl;
-        // std::cout << "current error: " << error_ << std::endl;
-
-        integral_ += error_*dt_;
-
-        // std::cout << "integral: " << integral_ << std::endl;
-
-        derivative_ = (error_ - previous_error_u_) / dt_; 
-
-        previous_error_u_ = error_;
-
-        std::cout << "derivative: " << derivative_ << " " << error_ - previous_error_u_ << " " << dt_ << std::endl;
-        
-
-        send_command_y_ = kp1_ * error_ + ki1_ * integral_ + kd1_ * derivative_;
-
-        previous_error_ = 0;
-
-        std::cout << send_command_y_ << " acceleration " << std::endl;
+    
+    // Check for the longest sequence one last time after the loop ends
+    if (_sequence > _longest_sequence) {
+        _longest_sequence = _sequence; 
+        end_top_ = map_1D_.size() - 1; 
+        start_bottom_ = map_1D_.size() - _sequence;
     }
 
-
+    // std::cout << "longest sequence " << _longest_sequence << std::endl; 
+    // std::cout << "start and stop height: " << start_bottom_ << " " << end_top_ << std::endl;
 }
+
+
+// void Flyappy::longest_sequence()
+// {   
+//     double _sequence = 0; 
+//     double _longest_sequence = 0; 
+
+//     for(unsigned int i = 0; i < map_1D_.size(); i++)
+//     {
+//         // std::cout << "hello" << std::endl;
+//         if(map_1D_[i] == 0)
+//         {
+//             _sequence +=1;      
+//         }
+//         else if ((i != 0) && (i != 402)){
+//             if ((map_1D_[i] == 3 || map_1D_[i] == 1) && (map_1D_[i-1] == 0) && (map_1D_[i+1] == 0))
+//                 _sequence += 1;
+//         }
+//         else 
+//         {
+//             _sequence = 0; // Sequence ended, so reset
+//         }
+        
+        
+//         if (_sequence > _longest_sequence) {
+//             _longest_sequence = _sequence; 
+//             end_top_ = i -1; 
+//             start_bottom_ = i - 1 - _longest_sequence; 
+//         }
+        
+//     }
+
+//     // std::cout << "hello2" << std::endl;
+
+//     // std::cout << "longest sequence " << _longest_sequence << std::endl; 
+//     std::cout << "start and stop height: " << start_bottom_ << " " << end_top_ << std::endl;
+// }
+
+void Flyappy::controller_y_acceleration_slam()
+{   
+    longest_sequence(); 
+
+    if(resetting_ && !decided_reset_value_){
+        requested_y_pos_ = current_height_;
+        std::cout << "i should be flying one height: " << requested_y_pos_ << std::endl;
+        decided_reset_value_ = true; 
+    } else if(!resetting_){
+        requested_y_pos_ = (end_top_ + start_bottom_)/200.0;
+    }
+    
+    if(requested_y_pos_ == 0){
+        requested_y_pos_ = 2; 
+    }
+    std::cout << "current height: " << current_height_ << " wanted height not zooming " << requested_y_pos_ << std::endl;
+    error_ = requested_y_pos_ - current_height_;
+    // std::cout << requested_v_y_ << std::endl;
+        
+    integral_ += error_*dt_;
+
+
+    derivative_ = (error_ - previous_error_) / dt_; 
+
+    send_command_y_ = kp_ * error_ + ki_ * integral_ + kd_ * derivative_;
+
+    // send_command_y_ = WeightedMovingAverageFilter(WeightedMovingAverageFilterData_, weighted_y_acceleration_command_);
+
+    previous_error_ = error_;
+
+    previous_error_u_ = 0;
+
+    
+}
+
 
 float Flyappy::get_y_value_at_wall(unsigned int num, float value)
 {   
