@@ -1,5 +1,8 @@
 #include "flyappy_autonomy_code/flyappy.hpp"
 
+// current problem right now, if the distance is too big from the last scan, so bird is up but gap is down the laser wont pick up anything larger than 14 and wont update correctly. fix might be increasing the laser ranges
+
+// longest_sequence_ <= min_gap_size_ && distance_to_wall_ < 1.0 idea works well i think, i just need to implement it somewhere earlier as a function that checks if it should go into emerg state, and this should be early
 // ------------------------------------------------------ Get Data --------------------------------------------//
 
 
@@ -173,6 +176,7 @@ void Flyappy::baby_slam_maintain_state()
         run_slam_ = true; 
         steady_state_ = false;
         received_steady_state_goal_position_ = false;
+        longest_sequence_ = 0; 
     }
 
 }
@@ -186,6 +190,8 @@ void Flyappy::baby_slam()
         initialized_map_ = true; 
     }
 
+    emergency_controller();
+
     if(!baby_slam_reset() && !steady_state_)
     {
         baby_slam_update_map();
@@ -196,12 +202,20 @@ void Flyappy::baby_slam()
             requested_y_position_ = (upper_limit_ + lower_limit_)/200.0;
         }
     } else {
-        steady_state_ = true;
-        std::cout << "steady state" << std::endl;
-        baby_slam_maintain_state(); 
-        if(!steady_state_){
-            baby_slam_initialize_map();
+        if(!emergency_ && longest_sequence_ >= min_gap_size_ && (requested_y_position_ - state_.y) <= 0.05){
+            steady_state_ = true;
+            std::cout << "steady state" << std::endl;
+            baby_slam_maintain_state(); 
+            if(!steady_state_){
+                baby_slam_initialize_map();
+            }
         }
+            // steady_state_ = true;
+            // std::cout << "steady state" << std::endl;
+            // baby_slam_maintain_state(); 
+            // if(!steady_state_){
+            //     baby_slam_initialize_map();
+            // }
     }
 
 }
@@ -227,16 +241,15 @@ void Flyappy::baby_slam_update_map()
 
         }
     }
-    for (int i = 0; i < map_.size(); i++)
-    {
-        std::cout << map_[i] << " ";
-    }
+    // for (int i = 0; i < map_.size(); i++)
+    // {
+    //     std::cout << map_[i] << " ";
+    // }
 }
 
 void Flyappy::baby_slam_longest_sequence()
 {   
     double _sequence = 0; 
-    double _longest_sequence = 0; 
 
     for(unsigned int i = 1; i < map_.size() - 1; i++)
     {
@@ -251,9 +264,9 @@ void Flyappy::baby_slam_longest_sequence()
         }
         else 
         {
-            if (_sequence > _longest_sequence) {
-                _longest_sequence = _sequence; 
-                if(_longest_sequence >= min_gap_size_){
+            if (_sequence > longest_sequence_) {
+                longest_sequence_ = _sequence; 
+                if(longest_sequence_ >= min_gap_size_){
                     upper_limit_ = i -1; 
                     lower_limit_ = i - _sequence; 
                 }
@@ -275,13 +288,32 @@ void Flyappy::baby_slam_longest_sequence()
 
 // ------------------------------------------------------ Controller --------------------------------------------//
 
+void Flyappy::emergency_controller()
+{
+    if(longest_sequence_ <= min_gap_size_ && distance_to_wall_ < 0.75 )
+    {
+        emergency_ = true; 
+    } else {
+        emergency_ = false;
+    }
+}
+
 void Flyappy::x_pid()
 {   
-    if(!steady_state_)
+    if(!steady_state_ && !emergency_)
     {
-        requested_x_velocity_ = (lidar_ranges_[3] + lidar_ranges_[4] + lidar_ranges_[4])/15;
+        // requested_x_velocity_ = (lidar_ranges_[3] + lidar_ranges_[4] + lidar_ranges_[4])/15;
+        requested_x_velocity_ = (lidar_ranges_[3] + lidar_ranges_[4]*3 + lidar_ranges_[5])/30 - abs(error_y_)*10;
+        if(lidar_ranges_[4] < 0.5){
+            requested_x_velocity_ = 0; 
+        }
         error_x_ = requested_x_velocity_ - velocity_.x; 
+    } else if (emergency_) {
+        requested_x_velocity_ = 0; 
+        error_y_ = requested_x_velocity_ - velocity_.x; 
+        std::cout << "emergency x" << std::endl;
     } else {
+        std::cout << "im in the steadystate" << std::endl;
         error_x_ = steady_state_goal_position_x_ - state_.x; 
     }
 
@@ -301,10 +333,25 @@ void Flyappy::x_pid()
 
 void Flyappy::y_pid()
 {   
-    if(!steady_state_)
+    if(!steady_state_ && !emergency_)
     {
         error_y_ = requested_y_position_ - state_.y; 
+    } else if (emergency_ && !steady_state_) {
+        emergency_ = true; 
+        if(state_.y < 1.5)
+        {
+            requested_y_position_ = 2.5; 
+        } else if(state_.y > 2.5) {
+            requested_y_position_ = 1.5; 
+        } else {
+            std::cout << "should I b ehere? " << std::endl;
+            requested_y_position_ = last_requested_y_position_;
+        }
+        last_requested_y_position_ = requested_y_position_;
+        error_y_ = requested_y_position_ - state_.y; 
+        std::cout << "emergency y" << std::endl;
     } else {
+        emergency_ = false;
         error_y_ = steady_state_goal_position_y_ - state_.y;
     }
     
@@ -318,6 +365,7 @@ void Flyappy::y_pid()
 
     // std::cout << " " << std::endl;
     std::cout << "requested y position: " << requested_y_position_ << " current y position " << state_.y << std::endl;
+    std::cout << "largest gap: " << longest_sequence_ << std::endl;
 
     acceleration_.y = kp_y_ * error_y_ + ki_y_ * integral_y_ + kd_y_ * derivative_y_; 
 
