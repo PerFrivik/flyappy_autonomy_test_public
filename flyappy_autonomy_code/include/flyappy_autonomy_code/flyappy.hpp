@@ -120,6 +120,7 @@ class Flyappy
     std::chrono::high_resolution_clock::time_point previous_time_;
 
     double distance_to_wall_ = 0; 
+    double last_distance_to_wall_ = 0;
 
     double start_angle_ = -0.7853981852531433;
 
@@ -147,13 +148,20 @@ class Flyappy
 
     int gap_size_ = 0; 
 
-    int min_gap_size_ = 18; 
+    // int min_gap_size_ = 24; 
+
+    int min_gap_size_ = 8; 
+
+    int emergency_gap_size_ = 24; 
+
 
     bool emergency_mode_ = false; 
 
     double longest_sequence_ = 0; 
 
     bool emergency_ = false; 
+
+    bool should_reset_ = false;
 
     // Controller ------------------------------------------------------------------------
 
@@ -164,9 +172,9 @@ class Flyappy
 
     double steady_state_y_ = 0; 
 
-    double kp_y_ = 4.2; 
-    double ki_y_ = 0.5; 
-    double kd_y_ = 4.0; 
+    double kp_y_ = 5.0; 
+    double ki_y_ = 0.0; 
+    double kd_y_ = 5.0; 
 
     double error_y_ = 0; 
     double last_error_y_ = 0; 
@@ -176,13 +184,16 @@ class Flyappy
     double requested_y_position_ = 2; 
     double last_requested_y_position_ = 0;
 
+    bool going_up_ = false;
+    bool going_down_ = false; 
+
     //< X - Controller
 
     double steady_state_x_ = 0; 
 
-    double kp_x_ = 5.0; 
+    double kp_x_ = 1.0; 
     double ki_x_ = 0.0; 
-    double kd_x_ = 2.0; 
+    double kd_x_ = 0.0; 
 
     double error_x_ = 0; 
     double last_error_x_ = 0; 
@@ -190,6 +201,8 @@ class Flyappy
     double derivative_x_ = 0; 
 
     double requested_x_velocity_ = 0; 
+
+    
 
 
 
