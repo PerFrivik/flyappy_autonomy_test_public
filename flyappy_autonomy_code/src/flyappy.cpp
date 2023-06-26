@@ -305,7 +305,8 @@ void Flyappy::x_pid()
     if(!steady_state_ && !emergency_)
     {
         // requested_x_velocity_ = (lidar_ranges_[3] + lidar_ranges_[4] + lidar_ranges_[4])/15;
-        requested_x_velocity_ = ((lidar_ranges_[3] + lidar_ranges_[4]*3 + lidar_ranges_[5])/15) - abs(error_y_)*2;
+        // requested_x_velocity_ = ((lidar_ranges_[3] + lidar_ranges_[4]*3 + lidar_ranges_[5])/15) - abs(error_y_)*2;
+        requested_x_velocity_ = 1.0 - abs(error_y_)*10;
 
         std::cout << "positive vel term: " << (lidar_ranges_[3] + lidar_ranges_[4]*3 + lidar_ranges_[5])/20 << " negative vel term: " << abs(error_y_)*2 << std::endl;
         std::cout << "running normal pid" << std::endl;
@@ -323,7 +324,7 @@ void Flyappy::x_pid()
     } else if (steady_state_){
         // std::cout << "im in the steadystate" << std::endl;
         std::cout << "running steady x pid" << std::endl;
-        requested_x_velocity_ = 1.5 - abs(error_y_)*3;
+        requested_x_velocity_ = 1.0 - abs(error_y_)*3;
         error_x_ = (requested_x_velocity_ - velocity_.x); 
     }
 
@@ -368,6 +369,12 @@ void Flyappy::y_pid()
         } else if(state_.y > 2 && !going_up_) {
             going_down_ = true;
             requested_y_position_ = 1; 
+        } else if(state_.y < 1.1) {
+            going_down_ = false;
+            going_up_ = true; 
+        } else if(state_.y > 2.9){
+            going_up_ = false;
+            going_down_ = true;
         } else {
             // std::cout << "should I b ehere? " << std::endl;
             requested_y_position_ = last_requested_y_position_;
