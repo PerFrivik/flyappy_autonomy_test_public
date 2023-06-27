@@ -157,7 +157,7 @@ void Flyappy::baby_slam_initialize_map()
 bool Flyappy::baby_slam_reset()
 {    
     //std::cout<< "dist: " << distance_to_wall_ << " " << last_distance_to_wall_ << std::endl;
-    if(abs(distance_to_wall_ - last_distance_to_wall_) >= 0.3)
+    if(abs(distance_to_wall_ - last_distance_to_wall_) >= 0.3 || longest_sequence_ > 45) //Basically the issue rn is that it gets into steady  state too early, i could potentially add here that it can only get into steady state if the y value is close enough to the requested on be the GAP! important to noteis the gap
     {   
 
         //std::cout<< "i should reset the SLAM now" << std::endl;
@@ -174,9 +174,9 @@ void Flyappy::baby_slam_maintain_state()
     if(!received_steady_state_goal_position_)
     {   
         if(distance_to_wall_ < 0){
-            steady_state_goal_position_x_ = state_.x + 0.35;
+            steady_state_goal_position_x_ = state_.x + 0.4;
         } else {
-            steady_state_goal_position_x_ = state_.x + last_distance_to_wall_ + 0.4; 
+            steady_state_goal_position_x_ = state_.x + last_distance_to_wall_ + 0.5; 
         }
         steady_state_goal_position_y_ = requested_y_position_; 
         received_steady_state_goal_position_ = true; 
@@ -244,23 +244,23 @@ void Flyappy::baby_slam_update_map()
         if(abs(get_x_value(i, lidar_ranges_ [i]) - distance_to_wall_) < 0.4){
             if (map_[_map_location] != 0 || (i == 4) || (distance_to_wall_ < 0.7)){
                 if(map_[_map_location] == 0 && _map_location >= lower_limit_ && _map_location <= upper_limit_){
-                    std::cout << i<<  " map location: " << _map_location << " " << "im a rock resetting longest sequence" << std::endl;
+                    // std::cout << i<<  " map location: " << _map_location << " " << "im a rock resetting longest sequence" << std::endl;
                     longest_sequence_ = 0;
                     map_[_map_location] = 1; 
                 } else {
                     // if(i == 2)
-                    std::cout << i<<  " map location: " << _map_location << " " << "im a rock" << std::endl;
+                    // std::cout << i<<  " map location: " << _map_location << " " << "im a rock" << std::endl;
                     map_[_map_location] = 1; 
                 }
             }
         } else {
             // if(i == 2)
-            std::cout << i << " map location: " << _map_location << " " << "im a gap" << std::endl;
+            // std::cout << i << " map location: " << _map_location << " " << "im a gap" << std::endl;
             map_[_map_location] = 0;
 
         }
         // if(i == 2){
-        std::cout << i << " distance_to_wall_: " << distance_to_wall_ << " get_x_value(i, lidar_ranges_ [i]) " << get_x_value(i, lidar_ranges_ [i]) << " " <<  (get_x_value(i, lidar_ranges_ [i]) - distance_to_wall_) <<  std::endl; 
+        // std::cout << i << " distance_to_wall_: " << distance_to_wall_ << " get_x_value(i, lidar_ranges_ [i]) " << get_x_value(i, lidar_ranges_ [i]) << " " <<  (get_x_value(i, lidar_ranges_ [i]) - distance_to_wall_) <<  std::endl; 
         std::cout << " " << std::endl;
         std::cout << " gap " << longest_sequence_ << std::endl;
         std::cout << " " << std::endl;
@@ -309,10 +309,10 @@ void Flyappy::baby_slam_longest_sequence()
 
 void Flyappy::baby_slam_check_for_collision()
 {
-    double _top_of_bird = state_.y + 0.15;
-    double _bottom_of_bird = state_.y - 0.15; 
+    top_of_bird_ = state_.y + 0.15;
+    bottom_of_bird_ = state_.y - 0.15; 
 
-    if((_top_of_bird >= upper_limit_ || _bottom_of_bird <= lower_limit_) && distance_to_wall_ <  0.5)
+    if((top_of_bird_*100 >= upper_limit_ || bottom_of_bird_*100 <= lower_limit_) && distance_to_wall_ <  0.45)
     {
         out_of_bounds_ = true;
     } else {
@@ -348,8 +348,12 @@ void Flyappy::visualize_map() {
                 img.at<cv::Vec3b>(y, 0) = cv::Vec3b(0, 0, 255); // Red for 3
         }
         img.at<cv::Vec3b>(403 - state_.y*100, 0) = cv::Vec3b(0, 0, 255); // Red for 3
+        img.at<cv::Vec3b>(403 - top_of_bird_*100, 0) = cv::Vec3b(0, 0, 255); // Red for 3
+        img.at<cv::Vec3b>(403 - bottom_of_bird_*100, 0) = cv::Vec3b(0, 0, 255); // Red for 3
+
         img.at<cv::Vec3b>(403 - upper_limit_, 0) = cv::Vec3b(255, 0, 255); // Red for 3
         img.at<cv::Vec3b>(403 - lower_limit_, 0) = cv::Vec3b(255, 0, 255); // Red for 3
+        img.at<cv::Vec3b>(403 - requested_y_position_, 0) = cv::Vec3b(255, 255, 0); // Red for 3
 
         // Resize the image to be more visible
         cv::Mat resized_img;
@@ -371,7 +375,7 @@ void Flyappy::visualize_map() {
 void Flyappy::emergency_controller()
 {   
     //std::cout<< "emergency data: longest sequnce: " << longest_sequence_ << " distance to wall: " << distance_to_wall_ << std::endl;
-    if(longest_sequence_ <= emergency_gap_size_ && distance_to_wall_ < 0.45 )
+    if(longest_sequence_ <= emergency_gap_size_ && distance_to_wall_ < 0.5 )
     {
         emergency_ = true; 
         //std::cout<< "emergency!!!" << std::endl;
@@ -387,7 +391,7 @@ void Flyappy::x_pid()
     if(!steady_state_ && !emergency_)
     {
         if(longest_sequence_ != 0){
-            requested_x_velocity_ = wanted_x_velocity_ - abs(error_y_)*10 + (longest_sequence_ - emergency_gap_size_)/20;
+            requested_x_velocity_ = wanted_x_velocity_ - abs(error_y_)*10 /*+ (longest_sequence_ - emergency_gap_size_)/20*/;
 
         } 
         else 
@@ -410,6 +414,7 @@ void Flyappy::x_pid()
         //std::cout<< "running emerg x pid" << std::endl;
         requested_x_velocity_ = 0; 
         error_x_ = -3 + (requested_x_velocity_ - velocity_.x)*10; 
+        std::cout << "its either emergency or out of bounds " << longest_sequence_ << " " << upper_limit_ << " " << top_of_bird_*100 << " " << lower_limit_ << " " << bottom_of_bird_*100<<  std::endl;
         //std::cout<< requested_x_velocity_ << " " << velocity_.x << "!!!!!!!!!!!!!!!!!!!!!! emergg" << std::endl;
         // //std::cout<< "emergency x" << std::endl;
     } 
@@ -417,7 +422,7 @@ void Flyappy::x_pid()
     {
         // //std::cout<< "im in the steadystate" << std::endl;
         //std::cout<< "running steady x pid" << std::endl;
-        requested_x_velocity_ = 1.5 - abs(error_y_)*10 + (longest_sequence_ - emergency_gap_size_)/20;
+        requested_x_velocity_ = wanted_x_velocity_ - abs(error_y_)*10 + (longest_sequence_ - emergency_gap_size_)/100;
         error_x_ = (requested_x_velocity_ - velocity_.x); 
     }
 
@@ -446,14 +451,14 @@ void Flyappy::x_pid()
 
 void Flyappy::y_pid()
 {   
-    if(!steady_state_ && !emergency_)
+    if(!steady_state_ && !emergency_ && !out_of_bounds_)
     {
         error_y_ = requested_y_position_ - state_.y; 
-        //std::cout<< "running normal y pid" << std::endl;
+        std::cout<< "running normal y pid" << std::endl;
 
-    } else if (emergency_ && !steady_state_) {
+    } else if (emergency_) {
         // emergency_ = true; 
-        //std::cout<< "running emerg y pid" << std::endl;
+        std::cout<< "running emerg y pid" << std::endl;
 
         if(state_.y < 2 && !going_down_)
         {   
@@ -476,11 +481,13 @@ void Flyappy::y_pid()
         error_y_ = requested_y_position_ - state_.y; 
         // //std::cout<< "emergency y" << std::endl;
     } else if (steady_state_) {
-        //std::cout<< "running steady y pid" << std::endl;
+        std::cout<< "running steady y pid" << std::endl;
 
         // emergency_ = false;
-        error_y_ = (steady_state_goal_position_y_ - state_.y)*2;
+        error_y_ = (steady_state_goal_position_y_ - state_.y);
     }
+
+    
     
     integral_y_ += error_y_ * dt_; 
 
@@ -494,6 +501,8 @@ void Flyappy::y_pid()
     //std::cout<< "requested y position: " << requested_y_position_ << " current y position " << state_.y << std::endl;
     //std::cout<< "largest gap: " << longest_sequence_ << std::endl;
     //std::cout<< upper_limit_ << " " << lower_limit_ << std::endl;
+
+    std::cout << "current y: " << state_.y << " requested y " << requested_y_position_ << " current y error" << error_y_*kp_y_<< " "  << kd_y_ * derivative_y_ << std::endl;
 
     acceleration_.y = kp_y_ * error_y_ + ki_y_ * integral_y_ + kd_y_ * derivative_y_; 
 

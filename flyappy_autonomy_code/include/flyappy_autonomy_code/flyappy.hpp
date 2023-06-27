@@ -96,6 +96,9 @@ class Flyappy
 
     s state_;
 
+    double top_of_bird_ = 0;
+    double bottom_of_bird_ = 0;
+
     struct v
     {
       float x;
@@ -158,7 +161,7 @@ class Flyappy
 
     // int min_gap_size_ = 24; 
 
-    int min_gap_size_ = 20; 
+    int min_gap_size_ = 12; 
 
     int emergency_gap_size_ = 30; 
 
@@ -183,9 +186,9 @@ class Flyappy
 
     double steady_state_y_ = 0; 
 
-    double kp_y_ = 5.2; 
-    double ki_y_ = 0.; 
-    double kd_y_ = 5.0; 
+    double kp_y_ = 2.5; 
+    double ki_y_ = 0.0; 
+    double kd_y_ = 2.4; 
 
     double error_y_ = 0; 
     double last_error_y_ = 0; 
@@ -202,9 +205,9 @@ class Flyappy
 
     double steady_state_x_ = 0; 
 
-    double wanted_x_velocity_ = 1.0;
+    double wanted_x_velocity_ = 1.5;
 
-    double kp_x_ = 1.0; 
+    double kp_x_ = 1.2; 
     double ki_x_ = 0.0; 
     double kd_x_ = 0.0; 
 
