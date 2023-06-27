@@ -1,5 +1,9 @@
 Awesome :D - Per
 
+sudo apt-get install libopencv-dev
+
+for visualizing the lidar data
+
 # Flyappy Autonomy Test Game
 
 This repository contains the coding test for the Flyability Autonomy team.

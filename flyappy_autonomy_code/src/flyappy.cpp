@@ -244,7 +244,9 @@ void Flyappy::baby_slam_update_map()
         if(abs(get_x_value(i, lidar_ranges_ [i]) - distance_to_wall_) < 0.4){
             if (map_[_map_location] != 0 || (i == 4) || (distance_to_wall_ < 0.7)){
                 if(map_[_map_location] == 0 && _map_location >= lower_limit_ && _map_location <= upper_limit_){
+                    std::cout << i<<  " map location: " << _map_location << " " << "im a rock resetting longest sequence" << std::endl;
                     longest_sequence_ = 0;
+                    map_[_map_location] = 1; 
                 } else {
                     // if(i == 2)
                     std::cout << i<<  " map location: " << _map_location << " " << "im a rock" << std::endl;
@@ -259,6 +261,10 @@ void Flyappy::baby_slam_update_map()
         }
         // if(i == 2){
         std::cout << i << " distance_to_wall_: " << distance_to_wall_ << " get_x_value(i, lidar_ranges_ [i]) " << get_x_value(i, lidar_ranges_ [i]) << " " <<  (get_x_value(i, lidar_ranges_ [i]) - distance_to_wall_) <<  std::endl; 
+        std::cout << " " << std::endl;
+        std::cout << " gap " << longest_sequence_ << std::endl;
+        std::cout << " " << std::endl;
+
         // }
     }
     // for (int i = map_.size(); i > 0; i--)
@@ -266,36 +272,6 @@ void Flyappy::baby_slam_update_map()
     //     std::cout<< map_[i] << " ";
     // }
 }
-
-// void Flyappy::baby_slam_longest_sequence()
-// {   
-//     double _sequence = 0; 
-
-//     for(unsigned int i = 1; i < map_.size() - 1; i++)
-//     {
-//         if(map_[i] == 0)
-//         {
-//             _sequence +=1;      
-//         }
-//         else if ((map_[i] == 1 || map_[i] == 3) && map_[i-1] == 0 && map_[i+1] == 0)
-//         {
-//             // Include a 1 or 3 if they are sandwiched between 0s
-//             _sequence += 1;
-//         }
-//         else 
-//         {
-//             if (_sequence > longest_sequence_) {
-//                 longest_sequence_ = _sequence; 
-//                 if(longest_sequence_ >= min_gap_size_){
-//                     upper_limit_ = i -1; 
-//                     lower_limit_ = i - _sequence; 
-//                 }
-//             }
-//             _sequence = 0; // Sequence ended, so reset
-//         }
-//     }
-
-// }
 
 void Flyappy::baby_slam_longest_sequence()
 {   
