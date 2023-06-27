@@ -7,6 +7,9 @@
 #include <vector>
 #include <chrono>
 
+#include <opencv2/opencv.hpp>
+#include <thread>
+
 
 class Flyappy
 {
@@ -46,7 +49,12 @@ class Flyappy
 
     void baby_slam_longest_sequence(); 
 
+    void baby_slam_check_for_collision(); 
+
     void baby_slam_maintain_state(); 
+
+    void visualize_map(); 
+    void start_visualization(); 
 
     // ------------------------------------------------------ Controller --------------------------------------------//
 
@@ -106,7 +114,7 @@ class Flyappy
 
     // Initialization ---------------------------------------------------------------------
 
-
+    bool is_running_ = false; 
 
     // State Estimation --------------------------------------------------------------------
 
@@ -150,10 +158,9 @@ class Flyappy
 
     // int min_gap_size_ = 24; 
 
-    int min_gap_size_ = 8; 
+    int min_gap_size_ = 20; 
 
-    int emergency_gap_size_ = 24; 
-
+    int emergency_gap_size_ = 30; 
 
     bool emergency_mode_ = false; 
 
@@ -162,6 +169,10 @@ class Flyappy
     bool emergency_ = false; 
 
     bool should_reset_ = false;
+
+    // SLAM - baby_slam_check_for_collision
+
+    bool out_of_bounds_ = false; 
 
     // Controller ------------------------------------------------------------------------
 
@@ -172,8 +183,8 @@ class Flyappy
 
     double steady_state_y_ = 0; 
 
-    double kp_y_ = 5.5; 
-    double ki_y_ = 0.0; 
+    double kp_y_ = 5.2; 
+    double ki_y_ = 0.; 
     double kd_y_ = 5.0; 
 
     double error_y_ = 0; 
@@ -191,7 +202,7 @@ class Flyappy
 
     double steady_state_x_ = 0; 
 
-    double wanted_x_velocity_ = 1.25;
+    double wanted_x_velocity_ = 1.0;
 
     double kp_x_ = 1.0; 
     double ki_x_ = 0.0; 

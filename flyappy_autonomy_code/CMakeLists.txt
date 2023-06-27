@@ -15,9 +15,13 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+find_package(OpenCV REQUIRED) # added  this
+
 catkin_package()
 
-include_directories(include)
+# include_directories(include)
+
+include_directories(include ${OpenCV_INCLUDE_DIRS}) # added this 
 
 add_library(flyappy src/flyappy.cpp)
 
@@ -26,13 +30,14 @@ target_include_directories(flyappy_ros PRIVATE ${catkin_INCLUDE_DIRS})
 target_link_libraries(flyappy_ros
   flyappy
   ${catkin_LIBRARIES}
+  ${OpenCV_LIBS}
 )
 
 add_executable(flyappy_autonomy_code_node src/flyappy_autonomy_code_node.cpp)
 target_include_directories(flyappy_autonomy_code_node PRIVATE ${catkin_INCLUDE_DIRS})
 target_link_libraries(flyappy_autonomy_code_node
   flyappy_ros
-  ${catkin_LIBRARIES}
+  ${catkin_LIBRARIES} # added this 
 )
 
 if(BUILD_TESTING)

@@ -9,7 +9,8 @@
                 "/opt/ros/noetic/include/**",
                 "/home/parallels/Workspace/flyappy_ws/src/flyappy_autonomy_test_public/flyappy_autonomy_code/include/**",
                 "/usr/include/**",
-                "${workspaceFolder}/flyappy_autonomy_code/include"
+                "${workspaceFolder}/flyappy_autonomy_code/include",
+                "/usr/include/opencv4"
             ],
             "name": "ROS",
             "intelliSenseMode": "gcc-arm64",
