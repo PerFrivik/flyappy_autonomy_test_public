@@ -157,7 +157,7 @@ void Flyappy::baby_slam_initialize_map()
 bool Flyappy::baby_slam_reset()
 {    
     //std::cout<< "dist: " << distance_to_wall_ << " " << last_distance_to_wall_ << std::endl;
-    if(abs(distance_to_wall_ - last_distance_to_wall_) >= 0.3 || longest_sequence_ > 45) //Basically the issue rn is that it gets into steady  state too early, i could potentially add here that it can only get into steady state if the y value is close enough to the requested on be the GAP! important to noteis the gap
+    if(abs(distance_to_wall_ - last_distance_to_wall_) >= 0.3 || (longest_sequence_ > 50 && in_bounds_)) //Basically the issue rn is that it gets into steady  state too early, i could potentially add here that it can only get into steady state if the y value is close enough to the requested on be the GAP! important to noteis the gap
     {   
 
         //std::cout<< "i should reset the SLAM now" << std::endl;
@@ -178,7 +178,7 @@ void Flyappy::baby_slam_maintain_state()
         } else {
             steady_state_goal_position_x_ = state_.x + last_distance_to_wall_ + 0.5; 
         }
-        steady_state_goal_position_y_ = requested_y_position_; 
+        steady_state_goal_position_y_ = gap_middle_y_;  //change this to always show the largest gap 
         received_steady_state_goal_position_ = true; 
     }
     //std::cout<< "almost out of steady state" << steady_state_goal_position_x_ - state_.x << std::endl;
@@ -213,6 +213,7 @@ void Flyappy::baby_slam()
             requested_y_position_ = 2.0; 
         } else {
             requested_y_position_ = (upper_limit_ + lower_limit_)/200.0;
+            gap_middle_y_ = requested_y_position_;
         }
     } else {
         //std::cout<< "i should go into steady steate: " << emergency_ << " "  << longest_sequence_  << " " << abs(requested_y_position_ - state_.y) << std::endl;
@@ -267,16 +268,12 @@ void Flyappy::baby_slam_update_map()
 
         // }
     }
-    // for (int i = map_.size(); i > 0; i--)
-    // {
-    //     std::cout<< map_[i] << " ";
-    // }
 }
 
 void Flyappy::baby_slam_longest_sequence()
 {   
     double _sequence = 0;
-    int _tolerance = 3;  // Maximum number of consecutive 1s allowed in a sequence
+    int _tolerance = 2;  // Maximum number of consecutive 1s allowed in a sequence
     int _consecutive_ones = 0;
 
     for(unsigned int i = 1; i < map_.size() - 1; i++)
@@ -315,9 +312,13 @@ void Flyappy::baby_slam_check_for_collision()
     if((top_of_bird_*100 >= upper_limit_ || bottom_of_bird_*100 <= lower_limit_) && distance_to_wall_ <  0.45)
     {
         out_of_bounds_ = true;
-    } else {
+        in_bounds_ = false; 
+        std::cout << "im out of bounds" << std::endl;
+    } else if ((top_of_bird_*100 <= upper_limit_ || bottom_of_bird_*100 >= lower_limit_)){
+        in_bounds_ = true; 
         out_of_bounds_ = false; 
-    }
+        std::cout << "im in bounds" << std::endl;
+    } 
 }
 
 
@@ -375,7 +376,7 @@ void Flyappy::visualize_map() {
 void Flyappy::emergency_controller()
 {   
     //std::cout<< "emergency data: longest sequnce: " << longest_sequence_ << " distance to wall: " << distance_to_wall_ << std::endl;
-    if(longest_sequence_ <= emergency_gap_size_ && distance_to_wall_ < 0.5 )
+    if(longest_sequence_ <= emergency_gap_size_ && distance_to_wall_ < 0.7 )
     {
         emergency_ = true; 
         //std::cout<< "emergency!!!" << std::endl;
@@ -388,41 +389,23 @@ void Flyappy::emergency_controller()
 
 void Flyappy::x_pid()
 {   
-    if(!steady_state_ && !emergency_)
+    if(!steady_state_ && !emergency_ && !out_of_bounds_)
     {
-        if(longest_sequence_ != 0){
-            requested_x_velocity_ = wanted_x_velocity_ - abs(error_y_)*10 /*+ (longest_sequence_ - emergency_gap_size_)/20*/;
+        requested_x_velocity_ = wanted_x_velocity_ - (longest_sequence_ - emergency_gap_size_)/30;
 
-        } 
-        else 
-        {
-            requested_x_velocity_ = wanted_x_velocity_ - abs(error_y_)*10;
+        std::cout << "current speed: " << velocity_.x << std::endl;
 
-        }
-        // requested_x_velocity_ = wanted_x_velocity_ - abs(error_y_)*10 + (longest_sequence_ - emergency_gap_size_)/20;
-
-        //std::cout<< "positive vel term: " << (lidar_ranges_[3] + lidar_ranges_[4]*3 + lidar_ranges_[5])/20 << " negative vel term: " << abs(error_y_)*2 << std::endl;
-        //std::cout<< "running normal pid" << std::endl;
-
-        if(lidar_ranges_[4] < 0.3){
-            requested_x_velocity_ = -10; 
-        }
         error_x_ = requested_x_velocity_ - velocity_.x; 
     } 
     else if (emergency_ || out_of_bounds_) 
     {
-        //std::cout<< "running emerg x pid" << std::endl;
         requested_x_velocity_ = 0; 
         error_x_ = -3 + (requested_x_velocity_ - velocity_.x)*10; 
         std::cout << "its either emergency or out of bounds " << longest_sequence_ << " " << upper_limit_ << " " << top_of_bird_*100 << " " << lower_limit_ << " " << bottom_of_bird_*100<<  std::endl;
-        //std::cout<< requested_x_velocity_ << " " << velocity_.x << "!!!!!!!!!!!!!!!!!!!!!! emergg" << std::endl;
-        // //std::cout<< "emergency x" << std::endl;
     } 
     else if (steady_state_)
     {
-        // //std::cout<< "im in the steadystate" << std::endl;
-        //std::cout<< "running steady x pid" << std::endl;
-        requested_x_velocity_ = wanted_x_velocity_ - abs(error_y_)*10 + (longest_sequence_ - emergency_gap_size_)/100;
+        requested_x_velocity_ = wanted_x_velocity_ - abs(error_y_);
         error_x_ = (requested_x_velocity_ - velocity_.x); 
     }
 
@@ -435,15 +418,11 @@ void Flyappy::x_pid()
     }
 
     acceleration_.x = kp_x_ * error_x_ + ki_x_ * integral_x_ + kd_x_ * derivative_x_; 
-
-    //std::cout<< "my x acceleration " << acceleration_.x << std::endl;
+        std::cout << "accel: " << acceleration_.x << " " << kd_x_ * derivative_x_ << std::endl;
+    
 
     if(emergency_)
-    {
-        acceleration_.x = kp_x_ * error_x_; 
-        //std::cout<< "my x emergency acceleration " << acceleration_.x << std::endl;
-    }
-
+        std::cout << acceleration_.x << std::endl;
 
     last_error_x_ = error_x_;
 
@@ -497,10 +476,6 @@ void Flyappy::y_pid()
         derivative_y_ = 0;
     }
 
-    //std::cout<< " " << std::endl;
-    //std::cout<< "requested y position: " << requested_y_position_ << " current y position " << state_.y << std::endl;
-    //std::cout<< "largest gap: " << longest_sequence_ << std::endl;
-    //std::cout<< upper_limit_ << " " << lower_limit_ << std::endl;
 
     std::cout << "current y: " << state_.y << " requested y " << requested_y_position_ << " current y error" << error_y_*kp_y_<< " "  << kd_y_ * derivative_y_ << std::endl;
 

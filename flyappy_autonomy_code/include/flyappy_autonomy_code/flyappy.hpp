@@ -161,9 +161,9 @@ class Flyappy
 
     // int min_gap_size_ = 24; 
 
-    int min_gap_size_ = 12; 
+    int min_gap_size_ = 10; 
 
-    int emergency_gap_size_ = 30; 
+    int emergency_gap_size_ = 28; 
 
     bool emergency_mode_ = false; 
 
@@ -176,6 +176,7 @@ class Flyappy
     // SLAM - baby_slam_check_for_collision
 
     bool out_of_bounds_ = false; 
+    bool in_bounds_ = false;; 
 
     // Controller ------------------------------------------------------------------------
 
@@ -186,9 +187,9 @@ class Flyappy
 
     double steady_state_y_ = 0; 
 
-    double kp_y_ = 2.5; 
+    double kp_y_ = 5.0; 
     double ki_y_ = 0.0; 
-    double kd_y_ = 2.4; 
+    double kd_y_ = 5.0; 
 
     double error_y_ = 0; 
     double last_error_y_ = 0; 
@@ -197,6 +198,7 @@ class Flyappy
 
     double requested_y_position_ = 2; 
     double last_requested_y_position_ = 0;
+    double gap_middle_y_ = 0; 
 
     bool going_up_ = false;
     bool going_down_ = false; 
@@ -205,9 +207,9 @@ class Flyappy
 
     double steady_state_x_ = 0; 
 
-    double wanted_x_velocity_ = 1.5;
+    double wanted_x_velocity_ = 1;
 
-    double kp_x_ = 1.2; 
+    double kp_x_ = 1.0; 
     double ki_x_ = 0.0; 
     double kd_x_ = 0.0; 
 
