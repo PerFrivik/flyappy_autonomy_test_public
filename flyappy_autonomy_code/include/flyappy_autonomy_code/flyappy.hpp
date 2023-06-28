@@ -187,9 +187,9 @@ class Flyappy
 
     double steady_state_y_ = 0; 
 
-    double kp_y_ = 5.0; 
-    double ki_y_ = 0.0; 
-    double kd_y_ = 5.0; 
+    double kp_y_ = 8.0; 
+    double ki_y_ = 0.5; 
+    double kd_y_ = 6.0; 
 
     double error_y_ = 0; 
     double last_error_y_ = 0; 
@@ -207,7 +207,7 @@ class Flyappy
 
     double steady_state_x_ = 0; 
 
-    double wanted_x_velocity_ = 1;
+    double wanted_x_velocity_ = 0.8;
 
     double kp_x_ = 1.0; 
     double ki_x_ = 0.0; 
