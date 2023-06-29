@@ -168,7 +168,7 @@ void Flyappy::baby_slam_initialize_map()
 bool Flyappy::baby_slam_reset()
 {    
     // It resets when it realizes that flyappy has gone through the wall or when it realizes that it has a large enough gap already, but turns back on again for emergencies 
-    if(abs(distance_to_wall_ - last_distance_to_wall_) >= 0.3 || (longest_sequence_ > 35 && in_bounds_) && !emergency_) 
+    if(abs(distance_to_wall_ - last_distance_to_wall_) >= 0.3 || (longest_sequence_ > allow_steady_state_ && in_bounds_) && !emergency_) 
     {   
         return true;  
     } else {
@@ -188,7 +188,7 @@ void Flyappy::baby_slam_maintain_state()
         if(distance_to_wall_ < 0){
             steady_state_goal_position_x_ = state_.x + 0.4;
         } else {
-            steady_state_goal_position_x_ = state_.x + last_distance_to_wall_ + 0.5; 
+            steady_state_goal_position_x_ = state_.x + last_distance_to_wall_ + 0.4; 
         }
         steady_state_goal_position_y_ = gap_middle_y_;  
         received_steady_state_goal_position_ = true; 
@@ -273,7 +273,7 @@ void Flyappy::baby_slam_update_map()
         // Then we check if there is a rock or not, if there is none we fill the location on the map with a 0
         if(abs(get_x_value(i, lidar_ranges_ [i]) - distance_to_wall_) < 0.4)
         {
-            if (map_[_map_location] != 0 || (i == 4) || (distance_to_wall_ < 1.0))
+            if (map_[_map_location] != 0 || (i == 4) || (distance_to_wall_ < emergency_distance_))
             {   
                 // Here we check if we thought something was a gap, but instead is a solid location and this location is inside our current gap, we reset that gap and find the new gap
                 if(map_[_map_location] == 0 && _map_location >= lower_limit_ && _map_location <= upper_limit_)

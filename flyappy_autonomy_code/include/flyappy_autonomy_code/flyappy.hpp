@@ -145,8 +145,10 @@ class Flyappy
 
     int map_accuracy_ = 403; 
     int gap_size_ = 0; 
-    int min_gap_size_ = 10; 
-    int emergency_gap_size_ = 28; 
+    int min_gap_size_ = 12; 
+    int emergency_gap_size_ = 25; 
+    int allow_steady_state_ = 35; 
+    double emergency_distance_ = 1.0;
 
     std::vector<int> map_;
 
@@ -157,8 +159,6 @@ class Flyappy
     // Controller ------------------------------------------------------------------------
     
     bool steady_state_ = false; 
-
-    double steady_state_threshold_ = 0.2; 
 
     //< Y - Controller 
     
@@ -188,7 +188,7 @@ class Flyappy
     double integral_x_ = 0; 
     double derivative_x_ = 0; 
     double requested_x_velocity_ = 0; 
-    double wanted_x_velocity_ = 0.8; // This is the wanted constant base x velocity
+    double wanted_x_velocity_ = 1.0; // This is the wanted constant base x velocity
 
         
 
