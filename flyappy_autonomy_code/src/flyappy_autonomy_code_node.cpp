@@ -9,9 +9,6 @@ void threadLoop(FlyappyRos& flyappy_ros)
   // Set the desired loop rate to 30 Hz
   ros::Rate loop_rate(120);
 
-//    // Delay for 5 seconds before starting the loop
-//   std::this_thread::sleep_for(std::chrono::seconds(10));
-
   // Custom thread loop
   while (ros::ok()) 
   {

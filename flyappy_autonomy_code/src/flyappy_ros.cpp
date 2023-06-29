@@ -18,16 +18,10 @@ void FlyappyRos::velocityCallback(const geometry_msgs::Vector3::ConstPtr& msg)
     // Example of publishing acceleration command to Flyappy
     geometry_msgs::Vector3 acc_cmd;
 
-    // TODO: Create a method in Flyappy class that returns the wanted acceleration in x and y
-
-
     flyappy_.get_vx_data(msg->x, msg->y);
 
     acc_cmd.x = flyappy_.set_x_acceleration();
     acc_cmd.y = flyappy_.set_y_acceleration();
-
-    // acc_cmd.x = 0;
-    // acc_cmd.y = 0;
 
     pub_acc_cmd_.publish(acc_cmd);
 }
@@ -39,14 +33,10 @@ void FlyappyRos::threadloop_ros()
 
 void FlyappyRos::laserScanCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-    // TODO Properly send Lidar data
-
     flyappy_.get_lidar_data(msg->angle_min, msg->angle_max, msg->angle_increment, msg->time_increment,
                           msg->scan_time, msg->range_min, msg->range_max,
                           msg->ranges, msg->intensities);
 
-    // Example of printing laser angle and range
-    // ROS_INFO("Laser range: %f, angle: %f", msg->ranges[0], msg->angle_min);
 }
 
 void FlyappyRos::gameEndedCallback(const std_msgs::Bool::ConstPtr& msg)
